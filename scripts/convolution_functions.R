@@ -6,8 +6,6 @@
 library(dplyr)
 
 
-
-
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # FUNCTION Spectral Convolution - reformat!
 LS.spec.convolve <- function(df_hyper, df_rsr, df_oli){

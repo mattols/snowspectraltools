@@ -9,9 +9,9 @@ library(dplyr);library(ggplot2);library(tidyr)
 source("convolution_functions.R", echo=FALSE)
 
 ## file paths
-basepath = "spectral_convolution/spectralresponse"
-lookuppath = "spectral_convolution/lookuptables"
-resultpath = "spectral_convolution/results"
+basepath = "../spectral_convolution/spectralresponse"
+lookuppath = "../spectral_convolution/lookuptables"
+resultpath = "../spectral_convolution/results"
 
 ## Original data
 oli9_path = file.path(basepath, "L9_OLI2_Ball_BA_RSR.v2-1.xlsx")
