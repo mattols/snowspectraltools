@@ -665,4 +665,81 @@ ggplot(updated_data, aes(x = sample_collect, group = interaction(layer, site))) 
   scale_color_manual(values = c("Layer 1" = "blue", "Layer 2" = "green", "Layer 3" = "red")) +
   scale_fill_manual(values = c("Layer 1" = "blue", "Layer 2" = "green", "Layer 3" = "red"))
 
+as.factor(updated_data$sample_collect)
 
+
+
+library(ggplot2)
+library(dplyr)
+
+# Ensure correct date formats (if needed)
+your_data <- updated_data
+# your_data$sample_collect <- as.Date(your_data$sample_collect)
+# your_data$sample_collect <- as.factor(your_data$sample_collect)
+your_data$sample_collect <- factor(format(as.Date(your_data$sample_collect), "%B %d"), levels=c("March 21", "March 28", "April 04")) 
+your_data$layer <- factor(your_data$layer, levels=c("Feb 4", "March 4", "March 27")) 
+
+
+f4 <- your_data %>% filter(layer!="Clean") %>% 
+  # ggplot(aes(x = sample_collect, y = upper_depth, group = layer, fill = layer)) +
+  ggplot(aes(x = layer, y = upper_depth, group = layer, fill = layer)) +
+  geom_boxplot() +
+  # scale_fill_manual(
+  #   values = c("lightblue", "skyblue", "skyblue4"),
+  #   # values = c("white", "#f4cccc", "#ea9999", "#cc0000"), 
+  #   name = "Layer"
+  # ) +
+  facet_wrap(~ site) +
+  labs(
+    x = "Layer",
+    y = "Upper Depth (cm)",
+    # title = "Upper Depth by Sample Date and Site",
+    # subtitle = "Grouped and Colored by Layer"
+  ) +
+  theme_bw(base_size = 14) +
+  theme(
+    plot.title = element_text(size = 18, face = "bold"),
+    axis.title.y = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    legend.position = "none"
+  )
+
+svpth = "figures/dust-samples-25"
+ggsave(file.path(svpth, "f4-upper-depth-layer.png"), plot = f4,
+       width = 8, height = 5, units = "in", dpi = 300)
+
+
+
+
+ggplot(your_data, aes(x = interaction(sample_collect, layer), y = upper_depth, fill = layer)) +
+  geom_boxplot() +
+  facet_wrap(~ site, scales = "free_x") +
+  labs(
+    x = "Sample Date + Layer",
+    y = "Upper Depth (cm)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+library(dplyr)
+library(ggplot2)
+
+# Summarize: average upper_depth by sample_collect and layer
+summary_data <- your_data %>% filter(layer!="Clean") %>% 
+  group_by(site, sample_collect, layer) %>%
+  summarise(mean_upper_depth = mean(upper_depth, na.rm = TRUE), .groups = "drop")
+
+# Plot: line of mean upper_depth over time, colored by layer, faceted by site
+summary_data %>% filter(layer!="Clean") %>% 
+  ggplot(aes(x = sample_collect, y = mean_upper_depth, color = layer, group = layer)) +
+  geom_line(size = 1) +
+  geom_point() +
+  facet_wrap(~ site) +
+  scale_y_reverse() +  # Reverse depth axis (deeper is lower)
+  labs(
+    x = "Sample Collection Date",
+    y = "Mean Upper Depth (cm)",
+    title = "Mean Upper Depth Over Time by Layer",
+    color = "Layer"
+  ) +
+  theme_minimal()
