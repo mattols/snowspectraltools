@@ -383,10 +383,11 @@ fg2 = ggplot(dfs2, aes(x = Date_Time)) +
     legend.position = "top"
   ) 
 
+fg2
 
 svpth = "figures/dust-samples-25"
-ggsave(file.path(svpth, "fg2-station-albedo.png"), plot = fg2,
-       width = 8, height = 6, units = "in", dpi = 300)
+# ggsave(file.path(svpth, "fg2-station-albedo.png"), plot = fg2,
+#        width = 8, height = 6, units = "in", dpi = 300)
 
 
 
@@ -432,4 +433,267 @@ ggplot(dfs2, aes(x = Date_Time)) +
   )
 
 
+
+
+#
+# # # # # # # # #
+#
+
+
+
+# Load libraries
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(openair)
+
+# Ensure datetime column is properly formatted
+dfs2$Date_Time <- as.POSIXct(dfs2$Date_Time)
+
+# Plot wind speed over time
+ggplot(dfs2, aes(x = Date_Time, y = wind_speed_set_1)) +
+  geom_line(color = "steelblue") +
+  labs(
+    title = "Wind Speed Over Time",
+    x = "Date",
+    y = "Wind Speed (m/s)"
+  ) +
+  theme_minimal()
+
+# Define target dates and convert to Date class
+target_dates <- as.Date(c("2025-02-04", "2025-03-04", "2025-03-27"))
+
+# Loop to create wind roses
+for (date in target_dates) {
+  # Calculate 4-day window
+  date_range <- seq(from = date - days(3), to = date, by = "day")
+  
+  # Filter and rename for openair
+  wind_subset <- dfs2 %>%
+    filter(as.Date(Date_Time) %in% date_range) %>%
+    select(Date_Time, wind_speed_set_1, wind_direction_set_1) %>%
+    rename(ws = wind_speed_set_1, wd = wind_direction_set_1)
+  
+  # Plot wind rose
+  windRose(
+    wind_subset,
+    ws = "ws",
+    wd = "wd",
+    paddle = FALSE,
+    breaks = c(0, 1, 3, 5, 8, 11),
+    main = paste("Wind Rose:", date),
+    key.position = "right"
+  )
+}
+
+
+
+# Load required packages
+library(dplyr)
+library(ggplot2)
+library(openair)
+
+# Ensure Date_Time is POSIXct and create a Date column
+dfs2$Date_Time <- as.POSIXct(dfs2$Date_Time)
+dfs2$date <- as.Date(dfs2$Date_Time)
+
+# Define target dates as Date objects
+target_dates <- as.Date(c("2025-02-04", "2025-03-04", "2025-03-27"))
+
+# Loop over each target date and create a wind rose for the 3 days prior + target day
+for (target_date in target_dates) {
+  # Filter 4-day window
+  date_range <- seq(target_date - 3, target_date, by = "day")
+  
+  # Filter and prepare data
+  wind_subset <- dfs2 %>%
+    filter(date %in% date_range) %>%
+    select(Date_Time, wind_speed_set_1, wind_direction_set_1) %>%
+    rename(ws = wind_speed_set_1, wd = wind_direction_set_1)
+  
+  # Plot wind rose
+  print(windRose(
+    wind_subset,
+    ws = "ws",
+    wd = "wd",
+    paddle = FALSE,
+    breaks = c(0, 1, 3, 5, 8, 11),
+    main = paste("Wind Rose: 3 Days Before", target_date),
+    key.position = "right"
+  ))
+}
+
+
+#
+#
+#
+#
+#
+#
+#
+#
+
+
+station_path0 = "../snowspectraltools/data/UUSSD-2025/SND.2025-05-08.csv"
+
+# read the units row
+colnames_x <- read.csv(station_path0, skip = 10, nrows = 1, header = TRUE, stringsAsFactors = FALSE)
+dfsx <- read.csv(station_path0, skip = 11, header = TRUE, stringsAsFactors = FALSE)
+# column names 
+colnames(dfsx) <- colnames(colnames_x)
+head(dfsx)
+
+
+library(dplyr)
+library(openair)
+
+# Ensure proper classes
+dfsx$Date_Time <- as.POSIXct(dfsx$Date_Time)
+dfsx$date <- as.Date(dfsx$Date_Time)
+
+# Ensure numeric wind columns
+dfsx$wind_speed_set_1 <- as.numeric(dfsx$wind_speed_set_1)
+dfsx$wind_direction_set_1 <- as.numeric(dfsx$wind_direction_set_1)
+
+# Remove invalid data
+dfsx <- dfsx %>%
+  filter(!is.na(wind_speed_set_1), !is.na(wind_direction_set_1)) %>%
+  filter(wind_speed_set_1 >= 0)
+
+# Dates to analyze
+target_dates <- as.Date(c("2025-02-04", "2025-03-04", "2025-03-27"))
+
+# Loop for rose plots
+dds = 2
+for (target in target_dates) {
+  window_data <- dfsx %>%
+    filter(date >= target - dds & date <= target) %>%
+    select(Date_Time, wind_speed_set_1, wind_direction_set_1) %>%
+    rename(ws = wind_speed_set_1, wd = wind_direction_set_1)
+  
+  if (nrow(window_data) > 0) {
+    png(file.path(svpth, 
+                  paste0("fwind_",
+                         paste0(as.character(as.Date(target - dds)), 
+                                               "_", as.character(as.Date(target))),".png")),
+        width = 6, height = 5, units = "in",res=300)
+    print(windRose(window_data, ws = "ws", wd = "wd", 
+                   paddle = FALSE, breaks = c(0, 1, 3, 5, 8, 11),
+                   key.position = "right", 
+                   
+                   main = paste(as.character(as.Date(target - dds)), 
+                                "to", as.character(as.Date(target)))))
+    dev.off()
+  } else {
+    message(paste("No data for", target))
+  }
+}
+
+
+
+
+
+
+
+
+##### GROUP FIGS
+
+
+
+
+updated_data <- all_data
+updated_data$layer[is.na(updated_data$layer)] = "March 27"
+
+# add text
+count_data <- updated_data %>% filter(site=="MM") %>% 
+  group_by(site, layer) %>%
+  summarise(n = n(), .groups = "drop")
+
+f2.2 = updated_data %>% filter(site=="MM") %>% 
+  ggplot(aes(x = layer, y = dust_conc, fill = layer)) +
+  geom_boxplot(position = position_dodge(0.8), width = 0.6, color = "black") +
+  stat_summary(
+    fun = mean, geom = "point", shape = 21, size = 3,
+    position = position_dodge(0.8), color = "black"
+  ) +
+  scale_fill_manual(
+    # values = c("white", "lightblue", "skyblue", "skyblue4"), 
+    values = c("white", "#f4cccc", "#ea9999", "#cc0000"), 
+    name = "Layer"
+  ) +
+  geom_text(
+    data = count_data,
+    aes(x = layer, y = 0.18, label = n, group = layer),
+    position = position_dodge(0.8),
+    size = 4,
+    fontface = "italic",
+    vjust = 1
+  ) +
+  labs(
+    title = "Dust Concentration (ppm) by Site and Layer",
+    x = "",
+    y = "Dust Concentration (ppm)",
+    fill = "Layer"
+  ) +
+  theme_bw(base_size = 14) +
+  theme(legend.position="none",
+        axis.title.y = element_text(size = 16),
+        axis.text = element_text(size = 14))
+
+f2.2
+
+svpth = "figures/dust-samples-25"
+ggsave(file.path(svpth, "fgroup-mm-dust-tall.png"), plot = f2.2,
+       width = 6, height = 8, units = "in", dpi = 300)
+
+
+updated_data %>% filter(site=="MM") %>%
+  write.csv(., "~/Downloads/mid-mountain-dust.csv", row.names = FALSE)
+
+# dust concentration by depth
+
+
+
+
+# add text
+count_data <- updated_data %>% filter(site=="MM") %>% 
+  group_by(site, layer) %>%
+  summarise(n = n(), .groups = "drop")
+
+f2.2 = updated_data %>% filter(site=="MM") %>% 
+  ggplot(aes(x = layer, y = dust_conc, fill = layer)) +
+  geom_boxplot(position = position_dodge(0.8), width = 0.6, color = "black") +
+  stat_summary(
+    fun = mean, geom = "point", shape = 21, size = 3,
+    position = position_dodge(0.8), color = "black"
+  ) +
+  scale_fill_manual(
+    # values = c("white", "lightblue", "skyblue", "skyblue4"), 
+    values = c("white", "#f4cccc", "#ea9999", "#cc0000"), 
+    name = "Layer"
+  ) +
+  geom_text(
+    data = count_data,
+    aes(x = layer, y = 0.18, label = n, group = layer),
+    position = position_dodge(0.8),
+    size = 4,
+    fontface = "italic",
+    vjust = 1
+  ) +
+  labs(
+    title = "Dust Concentration (ppm) by Site and Layer",
+    x = "",
+    y = "Dust Concentration (ppm)",
+    fill = "Layer"
+  ) +
+  theme_bw(base_size = 14) +
+  theme(legend.position="none",
+        axis.title.y = element_text(size = 16),
+        axis.text = element_text(size = 14))
+
+f2.2
+
+svpth = "figures/dust-samples-25"
+ggsave(file.path(svpth, "fgroup-mm-dust-tall.png"), plot = f2.2,
+       width = 6, height = 8, units = "in", dpi = 300)
 

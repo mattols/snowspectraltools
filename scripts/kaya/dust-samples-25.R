@@ -334,16 +334,16 @@ f2 = ggplot(updated_data, aes(x = site, y = dust_conc, fill = layer)) +
     vjust = 1
   ) +
   labs(
-    # title = "Dust Concentration (ppm) by Site and Layer",
+    title = "Dust Layer Concentrations",
     x = "",
     y = "Dust Concentration (ppm)",
     fill = "Layer"
   ) +
-  theme_bw(base_size = 14)
+  theme_bw(base_size = 14) 
 
 
 svpth = "figures/dust-samples-25"
-ggsave(file.path(svpth, "f2-dust-site-layer.png"), plot = f2,
+ggsave(file.path(svpth, "f2-dust-site-layer-2.png"), plot = f2,
        width = 8, height = 5, units = "in", dpi = 300)
 
 
