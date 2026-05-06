@@ -118,7 +118,12 @@ head(all_data)
 glimpse(all_data)
 
 # filter cct values below 0
-all_data <- all_data %>% filter(dust_conc > 0 & dust_conc < 0.2)
+# all_data <- all_data %>% filter(dust_conc > 0 & dust_conc < 0.2)
+
+# concentrations were times by 100 but need to times by 10
+# then units are mg g^-1
+all_data <- all_data %>% filter(dust_conc > 0 & dust_conc < 0.2) %>% 
+  mutate(dust_conc = dust_conc*10)
 
 # # # # # # # # # 
 ## PLOTS
@@ -191,6 +196,8 @@ f1 = ggplot(all_data, aes(x = site, y = dust_conc, fill = elevation)) +
     legend.title = element_text(size = 14),
     legend.text = element_text(size = 12)
   )
+
+f1
 
 svpth = "figures/dust-samples-25"
 ggsave(file.path(svpth, "f1-dust-site-all.png"), plot = f1,
@@ -341,6 +348,7 @@ f2 = ggplot(updated_data, aes(x = site, y = dust_conc, fill = layer)) +
   ) +
   theme_bw(base_size = 14) 
 
+f2
 
 svpth = "figures/dust-samples-25"
 ggsave(file.path(svpth, "f2-dust-site-layer-2.png"), plot = f2,
@@ -364,7 +372,7 @@ f3 = ggplot(updated_data, aes(x = site, y = dust_conc, fill = site)) +
   ) +
   geom_text(
     data = count_data,
-    aes(x = site, y = 0.18, label = n),
+    aes(x = site, y = 1.8, label = n), # y=0.18
     inherit.aes = FALSE,
     size = 3,
     fontface = "italic"
@@ -372,21 +380,25 @@ f3 = ggplot(updated_data, aes(x = site, y = dust_conc, fill = site)) +
   facet_wrap(~layer) +
   labs(
     x = "",
-    y = "Dust Concentration (ppm)"
+    # y = "Dust Concentration (ppm)"
+    y = expression("Concentration (mg g"^{-1}*")")
   ) +
   theme_bw(base_size = 14) +
   theme(
-    plot.title = element_text(size = 18, face = "bold"),
-    axis.title.y = element_text(size = 16),
-    axis.text = element_text(size = 14),
+    plot.title = element_text(size = 20, face = "bold"),
+    axis.title.y = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    strip.text.x = element_text(size = 18),
     legend.position = "none"
   )
 
+f3
 
 svpth = "figures/dust-samples-25"
-ggsave(file.path(svpth, "f3-dust-site-layer-facet.png"), plot = f3,
-       width = 8, height = 5, units = "in", dpi = 300)
-
+# ggsave(file.path(svpth, "f3-dust-site-layer-facet.png"), plot = f3,
+#        width = 8, height = 5, units = "in", dpi = 300)
+ggsave(file.path(svpth, "Spring2025-dust-sites-corrected.png"), plot = f3,
+       width = 8, height = 5, units = "in", dpi = 350)
 
 
 # # # # # # # # # #
