@@ -120,6 +120,10 @@ glimpse(all_data)
 # filter cct values below 0
 # all_data <- all_data %>% filter(dust_conc > 0 & dust_conc < 0.2)
 
+# ppm would require us to multiply by 1,000,000
+# since it is a percentage (x100) multiply by 10,000
+
+# better to use mg per g (times 1000)
 # concentrations were times by 100 but need to times by 10
 # then units are mg g^-1
 all_data <- all_data %>% filter(dust_conc > 0 & dust_conc < 0.2) %>% 
